@@ -37,35 +37,13 @@ public class ViewActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        String id = getSharedPreferences("AUTH",MODE_PRIVATE)
-                .getString("CURR",null);
-        if(id != null){
-            String contactsStr = getSharedPreferences("DATA",MODE_PRIVATE)
-                    .getString(id,null);
-            if(contactsStr!=null){
-                String[] arr = contactsStr.split(";");
-                if(arr.length > contactPos){
-                    Contact c = Contact.of(arr[contactPos]);
-                    nameTxt.setText(c.getName());
-                    emailTxt.setText(c.getEmail());
-                    lastNameTxt.setText(c.getLastName());
-                    phoneTxt.setText(c.getPhone());
-                    addressTxt.setText(c.getAddress());
-                    descTxt.setText(c.getDesc());
-                }else{
-                    finishOnError();
-                }
-            }else{
-                finishOnError();
-            }
-        }else{
-            finishOnError();
-        }
-    }
-
-    private void finishOnError() {
-        Toast.makeText(this, "Something went wrong!", Toast.LENGTH_SHORT).show();
-        finish();
+        Contact c = StoreProvider.getInstance().getByPosition(contactPos);
+        nameTxt.setText(c.getName());
+        emailTxt.setText(c.getEmail());
+        lastNameTxt.setText(c.getLastName());
+        phoneTxt.setText(c.getPhone());
+        addressTxt.setText(c.getAddress());
+        descTxt.setText(c.getDesc());
     }
 
     @Override
@@ -77,7 +55,8 @@ public class ViewActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.delete_item) {
-            removeItem();
+            StoreProvider.getInstance().remove(contactPos);
+            finish();
         } else if (item.getItemId() == R.id.edit_item) {
             showEditView();
         }
@@ -90,48 +69,4 @@ public class ViewActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void removeItem() {
-        String id = getSharedPreferences("AUTH",MODE_PRIVATE)
-                .getString("CURR",null);
-        if(id!=null){
-            String contactsStr = getSharedPreferences("DATA",MODE_PRIVATE)
-                    .getString(id,null);
-            if(contactsStr!= null){
-                String[] arr = contactsStr.split(";");
-                if(arr.length > contactPos){
-                    List<Contact> list = new ArrayList<>();
-                    for(String str : arr){
-                        list.add(Contact.of(str));
-                    }
-                    list.remove(contactPos);
-                    StringBuilder builder = new StringBuilder();
-                    for (int i = 0; i < list.size(); i++) {
-                        builder.append(list.get(i).toString());
-                        if(i != list.size()-1){
-                            builder.append(";");
-                        }
-                    }
-                    String res = builder.toString();
-                    if(res.isEmpty()){
-                        getSharedPreferences("DATA",MODE_PRIVATE)
-                                .edit()
-                                .remove(id)
-                                .commit();
-                    }else {
-                        getSharedPreferences("DATA", MODE_PRIVATE)
-                                .edit()
-                                .putString(id, builder.toString())
-                                .commit();
-                    }
-                    finish();
-                }else {
-                    finishOnError();
-                }
-            }else{
-                finishOnError();
-            }
-        }else{
-            finishOnError();
-        }
-    }
 }
