@@ -58,4 +58,16 @@ public class StoreProvider {
         }
         return list;
     }
+
+    public void saveContacts(List<Contact> list){
+
+    }
+
+    public void remove(int position){
+
+    }
+
+    public Contact getByPosition(int position){
+        return null;
+    }
 }
