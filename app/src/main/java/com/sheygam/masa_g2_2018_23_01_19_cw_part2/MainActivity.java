@@ -13,9 +13,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button loginBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        StoreProvider.getInstance().setContext(this);
         super.onCreate(savedInstanceState);
-        if(getCurr() != null){
-            showProfile();
+
+        if(StoreProvider.getInstance().getUserId() != null){
+            showContactList();
         }
         setContentView(R.layout.activity_main);
         inputEmail = findViewById(R.id.input_email);
@@ -27,27 +29,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.login_btn){
-            login(inputEmail.getText().toString(), inputPassword.getText().toString());
+            StoreProvider.getInstance().login(inputEmail.getText().toString(),
+                    inputPassword.getText().toString());
+            showContactList();
         }
     }
 
-    private void login(String email, String password){
-        getSharedPreferences("AUTH",MODE_PRIVATE)
-                .edit()
-                .putString("CURR",email+"&"+password)
-                .commit();
-        showProfile();
-    }
-
-    private void showProfile() {
+    private void showContactList() {
         Intent intent = new Intent(this, ContactListActivity.class);
         startActivityForResult(intent,1);
     }
 
-    private String getCurr(){
-        return getSharedPreferences("AUTH",MODE_PRIVATE)
-                .getString("CURR",null);
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

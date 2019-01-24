@@ -5,23 +5,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
 
-public class ContactListActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ContactListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+    private ListView contactList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_list);
+        contactList = findViewById(R.id.contact_list);
+        contactList.setOnItemClickListener(this);
     }
 
     @Override
     protected void onStart() {
-        loadCurrentList();
+        ContactListAdapter adapter =
+                new ContactListAdapter(StoreProvider.getInstance().contacts(), this);
+        contactList.setAdapter(adapter);
         super.onStart();
-    }
-
-    private void loadCurrentList() {
-        //Todo get current from sp and update adapter
     }
 
     @Override
@@ -42,10 +50,7 @@ public class ContactListActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        getSharedPreferences("AUTH",MODE_PRIVATE)
-                .edit()
-                .remove("CURR")
-                .commit();
+        StoreProvider.getInstance().logout();
         setResult(RESULT_OK);
         finish();
     }
@@ -54,5 +59,10 @@ public class ContactListActivity extends AppCompatActivity {
         Intent intent = new Intent(this,ViewActivity.class);
         intent.putExtra("POS",pos);
         startActivity(intent);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        showContact(position);
     }
 }
