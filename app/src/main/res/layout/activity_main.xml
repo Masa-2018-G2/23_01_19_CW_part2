@@ -7,27 +7,47 @@
     tools:context=".MainActivity">
 
     <EditText
+        android:id="@+id/input_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:hint="Type email"
-        android:id="@+id/input_email"/>
+        android:hint="Type email" />
+
     <EditText
+        android:id="@+id/input_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/input_email"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="Type password"
-        android:id="@+id/input_password"/>
-    <Button
+        android:hint="Type password" />
+
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/input_password"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_alignParentEnd="true"
-        android:id="@+id/login_btn"
-        android:text="Login"/>
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp">
+
+        <Button
+            android:id="@+id/login_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/progress_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ABFFFFFF"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </RelativeLayout>

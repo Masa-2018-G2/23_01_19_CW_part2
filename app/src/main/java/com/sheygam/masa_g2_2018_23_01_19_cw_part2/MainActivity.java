@@ -1,16 +1,20 @@
 package com.sheygam.masa_g2_2018_23_01_19_cw_part2;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private EditText inputEmail, inputPassword;
     private Button loginBtn;
+    private FrameLayout progressFrame;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         StoreProvider.getInstance().setContext(this);
@@ -23,15 +27,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         inputEmail = findViewById(R.id.input_email);
         inputPassword = findViewById(R.id.input_password);
         loginBtn = findViewById(R.id.login_btn);
+        progressFrame = findViewById(R.id.progress_frame);
+        progressFrame.setOnClickListener(null);
         loginBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.login_btn){
-            StoreProvider.getInstance().login(inputEmail.getText().toString(),
-                    inputPassword.getText().toString());
-            showContactList();
+            new LoginTask().execute();
         }
     }
 
@@ -47,6 +51,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             finish();
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    class LoginTask extends AsyncTask<Void,Void,Void>{
+        private String email, password;
+
+        @Override
+        protected void onPreExecute() {
+            email = inputEmail.getText().toString();
+            password = inputPassword.getText().toString();
+            progressFrame.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            StoreProvider.getInstance().login(email,password);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressFrame.setVisibility(View.GONE);
+            showContactList();
+        }
     }
 }
 
