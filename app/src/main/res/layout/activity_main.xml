@@ -38,6 +38,20 @@
     </FrameLayout>
 
     <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/input_password"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp">
+
+        <Button
+            android:id="@+id/reg_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Registration" />
+    </FrameLayout>
+
+    <FrameLayout
         android:id="@+id/progress_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

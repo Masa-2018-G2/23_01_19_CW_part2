@@ -1,15 +1,18 @@
-package com.sheygam.masa_g2_2018_23_01_19_cw_part2;
+package com.sheygam.masa_g2_2018_23_01_19_cw_part2.data;
 
 import android.content.Context;
+
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.Contact;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class StoreProvider {
     private static final StoreProvider instance = new StoreProvider();
-    public static final String SP_AUTH = "AUTH";
-    public static final String SP_DATA = "DATA";
-    public static final String CURR = "CURR";
+    private static final String SP_AUTH = "AUTH";
+    private static final String SP_DATA = "DATA";
+    private static final String CURR = "CURR";
+    private static final String TOKEN = "TOKEN";
     private Context context;
 
     private StoreProvider() {
@@ -23,6 +26,18 @@ public class StoreProvider {
         this.context = context;
     }
 
+    public void save(String token){
+        context.getSharedPreferences(SP_AUTH, Context.MODE_PRIVATE)
+                .edit()
+                .putString(TOKEN, token)
+                .commit();
+    }
+
+    public String getToken(){
+        return context.getSharedPreferences(SP_AUTH,Context.MODE_PRIVATE)
+                .getString(TOKEN,null);
+    }
+
     public boolean login(String email, String password) {
         return context.getSharedPreferences(SP_AUTH, Context.MODE_PRIVATE)
                 .edit()
@@ -33,7 +48,7 @@ public class StoreProvider {
     public boolean logout() {
         return context.getSharedPreferences(SP_AUTH, Context.MODE_PRIVATE)
                 .edit()
-                .remove(CURR)
+                .remove(TOKEN)
                 .commit();
     }
 

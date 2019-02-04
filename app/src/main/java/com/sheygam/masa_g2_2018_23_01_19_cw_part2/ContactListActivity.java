@@ -10,8 +10,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.HttpProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.dto.ContactDto;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,8 +70,10 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
         showContact(position);
     }
 
-    class LoadTask extends AsyncTask<Void,Void,List<Contact>>{
+    class LoadTask extends AsyncTask<Void,Void,String>{
         private AlertDialog dialog;
+        private boolean isSuccess = true;
+        private List<ContactDto> list = new ArrayList<>();
 
         @Override
         protected void onPreExecute() {
@@ -80,21 +86,35 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
         }
 
         @Override
-        protected List<Contact> doInBackground(Void... voids) {
+        protected String doInBackground(Void... voids) {
+            String token = StoreProvider.getInstance().getToken();
+            String res = "Response ok";
             try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                list = HttpProvider.getInstance().getAllContacts(token);
+            } catch (IOException e){
+                isSuccess = false;
+                res = "Connection error!";
+            } catch (Exception e) {
+                isSuccess = false;
+                res = e.getMessage();
             }
-
-            return StoreProvider.getInstance().contacts();
+            return res;
         }
 
         @Override
-        protected void onPostExecute(List<Contact> contacts) {
-            ContactListAdapter adapter = new ContactListAdapter(contacts,ContactListActivity.this);
-            contactList.setAdapter(adapter);
+        protected void onPostExecute(String str) {
             dialog.dismiss();
+            if(isSuccess){
+                ContactListAdapter adapter = new ContactListAdapter(list,ContactListActivity.this);
+                contactList.setAdapter(adapter);
+            }else{
+                new AlertDialog.Builder(ContactListActivity.this)
+                        .setMessage(str)
+                        .setCancelable(false)
+                        .setPositiveButton("Ok",null)
+                        .create()
+                        .show();
+            }
         }
     }
 }

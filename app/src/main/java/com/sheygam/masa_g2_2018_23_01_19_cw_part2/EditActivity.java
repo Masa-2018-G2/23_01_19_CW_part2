@@ -10,8 +10,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
 
 public class EditActivity extends AppCompatActivity {
     private int contactPos;

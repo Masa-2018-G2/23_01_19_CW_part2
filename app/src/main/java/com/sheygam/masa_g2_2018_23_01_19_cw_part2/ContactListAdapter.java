@@ -7,13 +7,15 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.dto.ContactDto;
+
 import java.util.List;
 
 public class ContactListAdapter extends BaseAdapter {
-    private List<Contact> list;
+    private List<ContactDto> list;
     private Context context;
 
-    public ContactListAdapter(List<Contact> list, Context context) {
+    public ContactListAdapter(List<ContactDto> list, Context context) {
         this.list = list;
         this.context = context;
     }
@@ -24,7 +26,7 @@ public class ContactListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Contact getItem(int position) {
+    public ContactDto getItem(int position) {
         return list.get(position);
     }
 
@@ -39,7 +41,7 @@ public class ContactListAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context)
                     .inflate(R.layout.row_contact,parent,false);
         }
-        Contact contact = list.get(position);
+        ContactDto contact = list.get(position);
         TextView nameTxt = convertView.findViewById(R.id.name_txt);
         TextView phoneTxt = convertView.findViewById(R.id.phone_txt);
         nameTxt.setText(contact.getName());
