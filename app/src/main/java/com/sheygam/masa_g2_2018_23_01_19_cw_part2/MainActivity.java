@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.HttpProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.OkHttpProvider;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
 
 import java.io.IOException;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected String doInBackground(Void... voids) {
             String res = "Login ok";
             try {
-                String token = HttpProvider.getInstance().login(email,password);
+                String token = OkHttpProvider.getInstance().login(email,password);
                 StoreProvider.getInstance().save(token);
             }catch (IOException ex){
                 isSuccess = false;
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected String doInBackground(Void... voids) {
             String res = "Registration ok";
             try {
-                String token = HttpProvider.getInstance().registration(email,password);
+                String token = OkHttpProvider.getInstance().registration(email,password);
                 StoreProvider.getInstance().save(token);
             }catch (IOException ex){
                 isSuccess = false;

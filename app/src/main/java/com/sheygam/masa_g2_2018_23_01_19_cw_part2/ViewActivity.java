@@ -2,6 +2,8 @@ package com.sheygam.masa_g2_2018_23_01_19_cw_part2;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -11,10 +13,17 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.OkHttpProvider;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.dto.ContactDto;
+
+import java.io.IOException;
 
 public class ViewActivity extends AppCompatActivity {
-    private int contactPos;
+    private static final int EDIT_ACTIVITY = 1;
+    private ContactDto curr;
+    private Gson gson;
     private TextView nameTxt,
             emailTxt,
             lastNameTxt,
@@ -23,13 +32,19 @@ public class ViewActivity extends AppCompatActivity {
             descTxt;
     private FrameLayout progressFrame;
     private boolean isProgress = false;
+    private String contactJson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view);
+        gson = new Gson();
         Intent intent = getIntent();
-        contactPos = intent.getIntExtra("POS", 0);
+
+
+        contactJson = intent.getStringExtra("CONTACT");
+        curr = gson.fromJson(contactJson,ContactDto.class);
+
         progressFrame = findViewById(R.id.progress_frame);
         progressFrame.setOnClickListener(null);
 
@@ -39,12 +54,13 @@ public class ViewActivity extends AppCompatActivity {
         phoneTxt = findViewById(R.id.phone_txt);
         addressTxt = findViewById(R.id.address_txt);
         descTxt = findViewById(R.id.desc_txt);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        new LoadContactTask().execute();
+        nameTxt.setText(curr.getName());
+        lastNameTxt.setText(curr.getLastName());
+        emailTxt.setText(curr.getEmail());
+        phoneTxt.setText(curr.getPhone());
+        addressTxt.setText(curr.getAddress());
+        descTxt.setText(curr.getDescription());
     }
 
     @Override
@@ -69,8 +85,8 @@ public class ViewActivity extends AppCompatActivity {
 
     private void showEditView() {
         Intent intent = new Intent(this, EditActivity.class);
-        intent.putExtra("POS", contactPos);
-        startActivity(intent);
+        intent.putExtra("CONTACT", contactJson);
+        startActivityForResult(intent,EDIT_ACTIVITY);
     }
 
     private void showProgress(){
@@ -83,57 +99,59 @@ public class ViewActivity extends AppCompatActivity {
         isProgress = false;
     }
 
-    class LoadContactTask extends AsyncTask<Void,Void,Contact>{
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(resultCode == RESULT_OK && requestCode == EDIT_ACTIVITY){
+            String contactJson = data.getStringExtra("CONTACT");
+            curr = gson.fromJson(contactJson,ContactDto.class);
+            nameTxt.setText(curr.getName());
+            lastNameTxt.setText(curr.getLastName());
+            emailTxt.setText(curr.getEmail());
+            phoneTxt.setText(curr.getPhone());
+            addressTxt.setText(curr.getAddress());
+            descTxt.setText(curr.getDescription());
 
-        @Override
-        protected void onPreExecute() {
-            showProgress();
         }
-
-        @Override
-        protected Contact doInBackground(Void... voids) {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return StoreProvider.getInstance().getByPosition(contactPos);
-        }
-
-        @Override
-        protected void onPostExecute(Contact c) {
-            hideProgress();
-            nameTxt.setText(c.getName());
-            emailTxt.setText(c.getEmail());
-            lastNameTxt.setText(c.getLastName());
-            phoneTxt.setText(c.getPhone());
-            addressTxt.setText(c.getAddress());
-            descTxt.setText(c.getDesc());
-        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
-    class DeleteContactTask extends AsyncTask<Void,Void,Void>{
-
+    class DeleteContactTask extends AsyncTask<Void,Void,String>{
+        private boolean isSuccess = true;
         @Override
         protected void onPreExecute() {
             showProgress();
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected String doInBackground(Void... voids) {
+            String token = StoreProvider.getInstance().getToken();
             try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
+                OkHttpProvider.getInstance().delete(curr.getId(),token);
+            } catch (IOException e){
                 e.printStackTrace();
+                isSuccess = false;
+                return "Connection error! Check your internet!";
+            }catch (Exception e) {
+                isSuccess = false;
+                return e.getMessage();
             }
-            StoreProvider.getInstance().remove(contactPos);
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(String str) {
             hideProgress();
-            finish();
+            if(isSuccess) {
+                finish();
+            }else{
+                new AlertDialog.Builder(ViewActivity.this)
+                        .setTitle("Error!")
+                        .setMessage(str)
+                        .setPositiveButton("Ok",null)
+                        .setCancelable(false)
+                        .create()
+                        .show();
+            }
         }
     }
 }

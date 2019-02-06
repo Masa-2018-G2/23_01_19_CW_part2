@@ -10,11 +10,15 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.OkHttpProvider;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.dto.ContactDto;
+
+import java.io.IOException;
 
 public class EditActivity extends AppCompatActivity {
-    private int contactPos;
-    private Contact curr;
+    private ContactDto curr;
     private EditText inputName,
             inputLastName,
             inputEmail,
@@ -40,12 +44,20 @@ public class EditActivity extends AppCompatActivity {
         inputDesc = findViewById(R.id.input_desc);
 
         Intent intent = getIntent();
-        contactPos = intent.getIntExtra("POS", -1);
-        if (contactPos < 0) {
-            curr = new Contact("", "", "", "", "", "");
+        String contactJson = intent.getStringExtra("CONTACT");
+        if (contactJson == null) {
+            curr = new ContactDto(-1,"", "", "", "", "", "");
         } else {
-            new LoadContactTask().execute();
+            Gson gson = new Gson();
+            curr = gson.fromJson(contactJson,ContactDto.class);
         }
+
+        inputName.setText(curr.getName());
+        inputLastName.setText(curr.getLastName());
+        inputEmail.setText(curr.getEmail());
+        inputPhone.setText(curr.getPhone());
+        inputAddress.setText(curr.getAddress());
+        inputDesc.setText(curr.getDescription());
     }
 
     @Override
@@ -66,7 +78,12 @@ public class EditActivity extends AppCompatActivity {
             String desc = inputDesc.getText().toString().trim();
 
             if (isValid(name, lastName, email, phone, address, desc)) {
-                curr = new Contact(name, lastName, email, phone, address, desc);
+                curr.setName(name);
+                curr.setLastName(lastName);
+                curr.setEmail(email);
+                curr.setPhone(phone);
+                curr.setAddress(address);
+                curr.setDescription(desc);
                 new SaveTask().execute();
             } else {
                 Toast.makeText(this, "All fields need by fill!", Toast.LENGTH_SHORT).show();
@@ -97,61 +114,53 @@ public class EditActivity extends AppCompatActivity {
                 && !desc.isEmpty();
     }
 
-    class LoadContactTask extends AsyncTask<Void,Void,Contact> {
-
+    class SaveTask extends AsyncTask<Void,Void,String>{
+        private boolean isSuccess = true;
+        private ContactDto res;
         @Override
         protected void onPreExecute() {
             isProgressEnabled(true);
         }
 
         @Override
-        protected Contact doInBackground(Void... voids) {
+        protected String doInBackground(Void... voids) {
+            String token = StoreProvider.getInstance().getToken();
             try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
+                if (curr.getId() < 0) {
+                    res = OkHttpProvider.getInstance().addContact(curr, token);
+                } else {
+                    res = OkHttpProvider.getInstance().updateContact(curr, token);
+                }
+            }catch (IOException e){
                 e.printStackTrace();
-            }
-            return StoreProvider.getInstance().getByPosition(contactPos);
-        }
-
-        @Override
-        protected void onPostExecute(Contact c) {
-            isProgressEnabled(false);
-            curr = c;
-            inputName.setText(curr.getName());
-            inputEmail.setText(curr.getEmail());
-            inputLastName.setText(curr.getLastName());
-            inputPhone.setText(curr.getPhone());
-            inputAddress.setText(curr.getAddress());
-            inputDesc.setText(curr.getDesc());
-        }
-    }
-
-    class SaveTask extends AsyncTask<Void,Void,Void>{
-        @Override
-        protected void onPreExecute() {
-            isProgressEnabled(true);
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (contactPos < 0) {
-                StoreProvider.getInstance().add(curr);
-            } else {
-                StoreProvider.getInstance().update(curr, contactPos);
+                isSuccess = false;
+                return "Connection error! Check your internet!";
+            }catch (Exception e){
+                isSuccess = false;
+                return e.getMessage();
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(String str) {
             isProgressEnabled(false);
-            finish();
+            if(isSuccess) {
+                Gson gson = new Gson();
+                String contactJson = gson.toJson(res);
+                Intent intent = new Intent();
+                intent.putExtra("CONTACT",contactJson);
+                setResult(RESULT_OK,intent);
+                finish();
+            }else{
+                new AlertDialog.Builder(EditActivity.this)
+                        .setTitle("Error")
+                        .setMessage(str)
+                        .setPositiveButton("Ok",null)
+                        .setCancelable(false)
+                        .create()
+                        .show();
+            }
         }
     }
 }

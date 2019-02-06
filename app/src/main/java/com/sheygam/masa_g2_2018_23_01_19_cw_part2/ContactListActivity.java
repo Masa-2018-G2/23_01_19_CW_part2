@@ -1,5 +1,6 @@
 package com.sheygam.masa_g2_2018_23_01_19_cw_part2;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
@@ -11,7 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.google.gson.Gson;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.HttpProvider;
+import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.OkHttpProvider;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.StoreProvider;
 import com.sheygam.masa_g2_2018_23_01_19_cw_part2.data.dto.ContactDto;
 
@@ -49,6 +52,20 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
             startActivity(intent);
         }else if(item.getItemId() == R.id.logout_item){
             logout();
+        }else if(item.getItemId() == R.id.delete_all_item){
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete all?")
+                    .setMessage("Are you sure that you want delete all your contacts?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            new ClearTask().execute();
+                        }
+                    })
+                    .setNegativeButton("Cancel",null)
+                    .setCancelable(false)
+                    .create()
+                    .show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -59,15 +76,17 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
         finish();
     }
 
-    private void showContact(int pos){
+    private void showContact(ContactDto contact){
+        Gson gson = new Gson();
         Intent intent = new Intent(this,ViewActivity.class);
-        intent.putExtra("POS",pos);
+        intent.putExtra("CONTACT",gson.toJson(contact));
         startActivity(intent);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        showContact(position);
+        ContactDto contact = (ContactDto) parent.getAdapter().getItem(position);
+        showContact(contact);
     }
 
     class LoadTask extends AsyncTask<Void,Void,String>{
@@ -90,7 +109,7 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
             String token = StoreProvider.getInstance().getToken();
             String res = "Response ok";
             try {
-                list = HttpProvider.getInstance().getAllContacts(token);
+                list = OkHttpProvider.getInstance().getAllContacts(token);
             } catch (IOException e){
                 isSuccess = false;
                 res = "Connection error!";
@@ -107,6 +126,53 @@ public class ContactListActivity extends AppCompatActivity implements AdapterVie
             if(isSuccess){
                 ContactListAdapter adapter = new ContactListAdapter(list,ContactListActivity.this);
                 contactList.setAdapter(adapter);
+            }else{
+                new AlertDialog.Builder(ContactListActivity.this)
+                        .setMessage(str)
+                        .setCancelable(false)
+                        .setPositiveButton("Ok",null)
+                        .create()
+                        .show();
+            }
+        }
+    }
+
+    class ClearTask extends AsyncTask<Void,Void,String>{
+        private boolean isSuccess = true;
+        private AlertDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            dialog = new AlertDialog.Builder(ContactListActivity.this)
+                    .setTitle("Loading...")
+                    .setView(R.layout.frame_progress_dialog)
+                    .setCancelable(false)
+                    .create();
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            String token = StoreProvider.getInstance().getToken();
+            try {
+                OkHttpProvider.getInstance().clear(token);
+            } catch (IOException e){
+                e.printStackTrace();
+                isSuccess = false;
+                return "Connection error! Check your internet!";
+            }catch (Exception e) {
+                isSuccess = false;
+                return e.getMessage();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String str) {
+            dialog.dismiss();
+            if (isSuccess){
+                contactList.setAdapter(new ContactListAdapter(
+                        new ArrayList<ContactDto>(),ContactListActivity.this));
             }else{
                 new AlertDialog.Builder(ContactListActivity.this)
                         .setMessage(str)

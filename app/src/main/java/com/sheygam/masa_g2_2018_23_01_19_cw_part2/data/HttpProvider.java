@@ -20,6 +20,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class HttpProvider {
     private static final HttpProvider instance = new HttpProvider();
@@ -28,9 +36,17 @@ public class HttpProvider {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String AUTHORIZATION = "Authorization";
     private Gson gson;
+    private OkHttpClient client;
+    private MediaType JSON;
 
     private HttpProvider(){
         gson = new Gson();
+        JSON = MediaType.get("application/json; charset=utf-8");
+//        client = new OkHttpClient();
+        client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15,TimeUnit.SECONDS)
+                .build();
     }
 
     public static HttpProvider getInstance(){
